@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Route Planner - Smart Accessible Routing System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Accessible Route Planner</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Route Parameters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="route-form">
+                        <div class="mb-3">
+                            <label for="start" class="form-label">Start Location</label>
+                            <input type="text" class="form-control" id="start" name="start" placeholder="Enter start location" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end" class="form-label">Destination</label>
+                            <input type="text" class="form-control" id="end" name="end" placeholder="Enter destination" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="route-type" class="form-label">Route Type</label>
+                            <select class="form-select" id="route-type" name="route-type">
+                                <option value="optimal">Optimal (Balanced)</option>
+                                <option value="shortest">Shortest Distance</option>
+                                <option value="comfort">Most Comfortable</option>
+                                <option value="energy">Energy Efficient</option>
+                                <option value="accessible">Most Accessible</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Calculate Route</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Accessibility Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="avoid-stairs" checked>
+                        <label class="form-check-label" for="avoid-stairs">
+                            Avoid Stairs
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="avoid-slopes" checked>
+                        <label class="form-check-label" for="avoid-slopes">
+                            Avoid Steep Slopes
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="wheelchair-accessible" checked>
+                        <label class="form-check-label" for="wheelchair-accessible">
+                            Wheelchair Accessible Only
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Route Visualization</h5>
+                </div>
+                <div class="card-body">
+                    <div id="route-map" class="route-map">
+                        <!-- Map will be loaded here -->
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <p class="text-muted">Enter start and destination locations to view route</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Route Information</h5>
+                </div>
+                <div class="card-body">
+                    <div id="route-info">
+                        <p class="text-muted">Route information will appear here after calculation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const routeForm = document.getElementById('route-form');
+    
+    routeForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get form data
+        const start = document.getElementById('start').value;
+        const end = document.getElementById('end').value;
+        const routeType = document.getElementById('route-type').value;
+        
+        // Show loading indicator
+        const routeInfo = document.getElementById('route-info');
+        routeInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        // In a real implementation, this would call the API to calculate the route
+        // For now, we'll simulate a response
+        setTimeout(function() {
+            // Simulated route data
+            const routeData = {
+                start: start,
+                end: end,
+                distance: '1.5 km',
+                estimatedTime: '20 minutes',
+                accessibilityScore: 0.85,
+                segments: [
+                    {
+                        id: 1,
+                        start: 'Start Point',
+                        end: 'Intersection A',
+                        distance: '500m',
+                        surfaceType: 'asphalt',
+                        accessibilityScore: 0.9
+                    },
+                    {
+                        id: 2,
+                        start: 'Intersection A',
+                        end: 'Destination',
+                        distance: '1000m',
+                        surfaceType: 'concrete',
+                        accessibilityScore: 0.8
+                    }
+                ]
+            };
+            
+            // Display route information
+            displayRouteInfo(routeData);
+        }, 1000);
+    });
+    
+    function displayRouteInfo(routeData) {
+        const routeInfo = document.getElementById('route-info');
+        let html = `
+            <h6>Route Summary</h6>
+            <p><strong>Distance:</strong> ${routeData.distance}</p>
+            <p><strong>Estimated Time:</strong> ${routeData.estimatedTime}</p>
+            <p><strong>Accessibility Score:</strong> <span class="accessibility-score-high">${(routeData.accessibilityScore * 100).toFixed(0)}%</span></p>
+            
+            <h6>Route Segments</h6>
+        `;
+        
+        routeData.segments.forEach(segment => {
+            html += `
+                <div class="route-segment">
+                    <p><strong>${segment.start}</strong> to <strong>${segment.end}</strong></p>
+                    <p>Distance: ${segment.distance} | Surface: ${segment.surfaceType} | 
+                    Accessibility: <span class="accessibility-score-${segment.accessibilityScore >= 0.8 ? 'high' : segment.accessibilityScore >= 0.6 ? 'medium' : 'low'}">
+                    ${(segment.accessibilityScore * 100).toFixed(0)}%</span></p>
+                </div>
+            `;
+        });
+        
+        routeInfo.innerHTML = html;
+    }
+});
+</script>
+{% endblock %}

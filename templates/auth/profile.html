@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Smart Accessible Routing System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">User Profile</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" readonly>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Accessibility Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.preferences') }}">
+                        <div class="mb-3">
+                            <label for="mobility_aid" class="form-label">Mobility Aid</label>
+                            <select class="form-select" id="mobility_aid" name="mobility_aid">
+                                <option value="wheelchair" {% if user.mobility_aid == 'wheelchair' %}selected{% endif %}>Wheelchair</option>
+                                <option value="walker" {% if user.mobility_aid == 'walker' %}selected{% endif %}>Walker</option>
+                                <option value="cane" {% if user.mobility_aid == 'cane' %}selected{% endif %}>Cane</option>
+                                <option value="none" {% if user.mobility_aid == 'none' %}selected{% endif %}>None</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="max_slope" class="form-label">Maximum Slope (degrees)</label>
+                            <input type="number" class="form-control" id="max_slope" name="max_slope" value="{{ user.max_slope }}" step="0.1" min="0" max="15">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="min_width" class="form-label">Minimum Path Width (meters)</label>
+                            <input type="number" class="form-control" id="min_width" name="min_width" value="{{ user.min_width }}" step="0.1" min="0" max="5">
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="avoid_stairs" name="avoid_stairs" {% if user.avoid_stairs %}checked{% endif %}>
+                            <label class="form-check-label" for="avoid_stairs">Avoid Stairs</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Update Preferences</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Route Optimization Weights</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.preferences') }}">
+                        <div class="mb-3">
+                            <label for="distance_weight" class="form-label">Distance Weight</label>
+                            <input type="range" class="form-range" id="distance_weight" name="distance_weight" min="0" max="1" step="0.1" value="{{ preferences.distance_weight }}">
+                            <div class="form-text">Higher values prioritize shorter distances</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="energy_efficiency_weight" class="form-label">Energy Efficiency Weight</label>
+                            <input type="range" class="form-range" id="energy_efficiency_weight" name="energy_efficiency_weight" min="0" max="1" step="0.1" value="{{ preferences.energy_efficiency_weight }}">
+                            <div class="form-text">Higher values prioritize energy efficiency</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="comfort_weight" class="form-label">Comfort Weight</label>
+                            <input type="range" class="form-range" id="comfort_weight" name="comfort_weight" min="0" max="1" step="0.1" value="{{ preferences.comfort_weight }}">
+                            <div class="form-text">Higher values prioritize comfort</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Update Weights</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

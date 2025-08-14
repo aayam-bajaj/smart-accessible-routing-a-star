@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Smart Accessible Routing System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Smart Accessible Routing System</h1>
+            <p class="lead">Intelligent route planning for differently abled and elderly citizens</p>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Personalized Routing</h5>
+                    <p class="card-text">Get routes tailored to your specific mobility needs and preferences.</p>
+                    <a href="{{ url_for('auth.profile') }}" class="btn btn-primary">Configure Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Accessibility Focused</h5>
+                    <p class="card-text">Routes optimized for wheelchair users, elderly citizens, and those with mobility challenges.</p>
+                    <a href="{{ url_for('main.route_planner') }}" class="btn btn-primary">Plan Route</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">How It Works</h5>
+                    <ol>
+                        <li>Create your personalized profile with mobility preferences</li>
+                        <li>Enter your start and destination points</li>
+                        <li>Get multiple route options optimized for your needs</li>
+                        <li>Receive real-time updates on obstacles and accessibility issues</li>
+                        <li>Provide feedback to help improve the system for everyone</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Key Features</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>Multi-Criteria Optimization</h6>
+                            <p>Routes optimized for distance, energy efficiency, comfort, and accessibility.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Real-Time Updates</h6>
+                            <p>Community-driven obstacle reporting and route updates.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Machine Learning</h6>
+                            <p>Personalized recommendations based on your preferences and feedback.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
