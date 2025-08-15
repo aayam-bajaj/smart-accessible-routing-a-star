@@ -81,21 +81,40 @@ function initMapFeatures() {
  * @param {string} type - Alert type (success, error, warning, info)
  */
 function showAlert(message, type = 'info') {
+    // Map error type to Bootstrap alert class
+    const typeMap = {
+        'error': 'danger',
+        'success': 'success',
+        'warning': 'warning',
+        'info': 'info'
+    };
+    
+    const alertType = typeMap[type] || 'info';
+    
     // Create alert element
     const alert = document.createElement('div');
-    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.className = `alert alert-${alertType} alert-dismissible fade show`;
     alert.role = 'alert';
     alert.innerHTML = `
         ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
     
     // Insert alert at the top of the main content
-    const mainContent = document.getElementById('main-content') || document.querySelector('main');
+    const mainContent = document.getElementById('main-content') || document.querySelector('main') || document.querySelector('.container, .container-fluid');
     if (mainContent && mainContent.firstChild) {
         mainContent.insertBefore(alert, mainContent.firstChild);
     } else if (mainContent) {
         mainContent.appendChild(alert);
+    }
+    
+    // Auto-dismiss success and info alerts after 5 seconds
+    if (type === 'success' || type === 'info') {
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
     }
 }
 

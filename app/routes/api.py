@@ -115,6 +115,7 @@ def submit_feedback():
         
         return jsonify({
             'status': 'success',
+            'success': True,
             'message': 'Feedback submitted successfully'
         })
     
@@ -122,6 +123,7 @@ def submit_feedback():
         logger.error(f"Error submitting feedback: {e}")
         return jsonify({
             'status': 'error',
+            'success': False,
             'message': 'Failed to submit feedback'
         }), 500
 
@@ -145,6 +147,7 @@ def report_obstacle():
         
         return jsonify({
             'status': 'success',
+            'success': True,
             'message': 'Obstacle reported successfully'
         })
     
@@ -152,6 +155,7 @@ def report_obstacle():
         logger.error(f"Error reporting obstacle: {e}")
         return jsonify({
             'status': 'error',
+            'success': False,
             'message': 'Failed to report obstacle'
         }), 500
 

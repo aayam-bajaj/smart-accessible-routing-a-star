@@ -125,6 +125,66 @@ body {
     .navbar-nav .nav-item {
         margin: 5px 0;
     }
+    
+    /* Mobile-first responsive adjustments */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn-toolbar {
+        flex-wrap: wrap;
+    }
+    
+    .btn-group {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Form elements on mobile */
+    .form-control,
+    .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Route details responsive */
+    .route-stats .row {
+        text-align: center;
+    }
+    
+    .route-stats .col-4,
+    .route-stats .col-6 {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Tablet responsive design */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .route-map {
+        height: 400px;
+    }
+    
+    .route-controls {
+        padding: 15px;
+    }
+    
+    .accessibility-filters {
+        padding: 12px;
+    }
+}
+
+/* Large screen adjustments */
+@media (min-width: 1200px) {
+    .container-fluid {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+    
+    .route-map {
+        height: 600px;
+    }
+    
+    .route-results {
+        max-height: 700px;
+    }
 }
 
 /* Print styles for accessibility */

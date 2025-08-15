@@ -2,96 +2,351 @@
 
 {% block title %}Route Planner - Smart Accessible Routing System{% endblock %}
 
+{% block head %}
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Custom route planner styles -->
+    <style>
+        .route-controls {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .accessibility-filters {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .route-results {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .route-option {
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .route-option:hover {
+            border-color: #007bff;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+        }
+        
+        .route-option.selected {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+        
+        .accessibility-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .accessibility-high { background-color: #28a745; }
+        .accessibility-medium { background-color: #ffc107; }
+        .accessibility-low { background-color: #dc3545; }
+        
+        #route-map {
+            height: 500px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .route-stats {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .filter-checkbox {
+            margin-bottom: 10px;
+        }
+        
+        .overlay-legend {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .route-controls {
+                margin-bottom: 15px;
+            }
+            
+            #route-map {
+                height: 300px;
+            }
+            
+            .route-results {
+                max-height: 400px;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1 class="mb-4">Accessible Route Planner</h1>
+            <h1>Route Planner</h1>
+            <p class="lead">Plan accessible routes tailored to your mobility needs</p>
         </div>
     </div>
     
     <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Route Parameters</h5>
-                </div>
-                <div class="card-body">
-                    <form id="route-form">
-                        <div class="mb-3">
-                            <label for="start" class="form-label">Start Location</label>
-                            <input type="text" class="form-control" id="start" name="start" placeholder="Enter start location" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="end" class="form-label">Destination</label>
-                            <input type="text" class="form-control" id="end" name="end" placeholder="Enter destination" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="route-type" class="form-label">Route Type</label>
-                            <select class="form-select" id="route-type" name="route-type">
-                                <option value="optimal">Optimal (Balanced)</option>
-                                <option value="shortest">Shortest Distance</option>
-                                <option value="comfort">Most Comfortable</option>
-                                <option value="energy">Energy Efficient</option>
-                                <option value="accessible">Most Accessible</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Calculate Route</button>
-                    </form>
+        <!-- Left sidebar - Route Controls -->
+        <div class="col-lg-4 col-md-12">
+            <!-- Route Input Form -->
+            <div class="route-controls">
+                <h4><i class="bi bi-geo-alt"></i> Route Details</h4>
+                <form id="route-form">
+                    <div class="mb-3">
+                        <label for="start-location" class="form-label">From *</label>
+                        <input type="text" class="form-control" id="start-location" 
+                               placeholder="Enter starting location" required>
+                        <input type="hidden" id="start-lat">
+                        <input type="hidden" id="start-lng">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="end-location" class="form-label">To *</label>
+                        <input type="text" class="form-control" id="end-location" 
+                               placeholder="Enter destination" required>
+                        <input type="hidden" id="end-lat">
+                        <input type="hidden" id="end-lng">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="route-type" class="form-label">Route Preference</label>
+                        <select class="form-select" id="route-type">
+                            <option value="balanced">Balanced (Distance + Accessibility)</option>
+                            <option value="accessibility">Maximum Accessibility</option>
+                            <option value="shortest">Shortest Distance</option>
+                            <option value="safest">Safest Route</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="mobility-mode" class="form-label">Mobility Mode</label>
+                        <select class="form-select" id="mobility-mode">
+                            <option value="wheelchair">Wheelchair</option>
+                            <option value="walking_aid">Walking Aid</option>
+                            <option value="elderly">Elderly Walking</option>
+                            <option value="visual_impaired">Visually Impaired</option>
+                            <option value="standard">Standard Walking</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Find Routes
+                    </button>
+                </form>
+                
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading routes...</span>
+                    </div>
+                    <p class="mt-2">Finding accessible routes...</p>
                 </div>
             </div>
             
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5>Accessibility Filters</h5>
+            <!-- Accessibility Filters -->
+            <div class="accessibility-filters">
+                <h5><i class="bi bi-funnel"></i> Accessibility Overlays</h5>
+                <div class="filter-checkbox">
+                    <input type="checkbox" class="form-check-input" id="show-ramps" checked>
+                    <label class="form-check-label" for="show-ramps">
+                        Wheelchair Ramps
+                    </label>
                 </div>
-                <div class="card-body">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="avoid-stairs" checked>
-                        <label class="form-check-label" for="avoid-stairs">
-                            Avoid Stairs
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="avoid-slopes" checked>
-                        <label class="form-check-label" for="avoid-slopes">
-                            Avoid Steep Slopes
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="wheelchair-accessible" checked>
-                        <label class="form-check-label" for="wheelchair-accessible">
-                            Wheelchair Accessible Only
-                        </label>
-                    </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" class="form-check-input" id="show-elevators" checked>
+                    <label class="form-check-label" for="show-elevators">
+                        Elevators & Lifts
+                    </label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" class="form-check-input" id="show-wide-paths" checked>
+                    <label class="form-check-label" for="show-wide-paths">
+                        Wide Paths
+                    </label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" class="form-check-input" id="show-tactile-paving">
+                    <label class="form-check-label" for="show-tactile-paving">
+                        Tactile Paving
+                    </label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" class="form-check-input" id="show-obstacles">
+                    <label class="form-check-label" for="show-obstacles">
+                        Reported Obstacles
+                    </label>
+                </div>
+                <div class="filter-checkbox">
+                    <input type="checkbox" class="form-check-input" id="show-restrooms">
+                    <label class="form-check-label" for="show-restrooms">
+                        Accessible Restrooms
+                    </label>
+                </div>
+                
+                <div class="overlay-legend">
+                    <h6>Accessibility Score Legend:</h6>
+                    <div><span class="accessibility-indicator accessibility-high"></span> High (0.8-1.0)</div>
+                    <div><span class="accessibility-indicator accessibility-medium"></span> Medium (0.5-0.8)</div>
+                    <div><span class="accessibility-indicator accessibility-low"></span> Low (0.0-0.5)</div>
+                </div>
+            </div>
+            
+            <!-- Route Results -->
+            <div id="route-results-container" style="display: none;">
+                <h5><i class="bi bi-list-ul"></i> Route Options</h5>
+                <div class="route-results" id="route-results">
+                    <!-- Route options will be populated here -->
                 </div>
             </div>
         </div>
         
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Route Visualization</h5>
-                </div>
-                <div class="card-body">
-                    <div id="route-map" class="route-map">
-                        <!-- Map will be loaded here -->
-                        <div class="d-flex justify-content-center align-items-center h-100">
-                            <p class="text-muted">Enter start and destination locations to view route</p>
-                        </div>
+        <!-- Right side - Map -->
+        <div class="col-lg-8 col-md-12">
+            <div id="route-map" role="application" aria-label="Interactive route map">
+                <!-- Map will be initialized here -->
+            </div>
+            
+            <!-- Map Controls -->
+            <div class="mt-3">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group me-2" role="group">
+                        <button type="button" class="btn btn-outline-secondary" id="zoom-in">
+                            <i class="bi bi-zoom-in"></i> Zoom In
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="zoom-out">
+                            <i class="bi bi-zoom-out"></i> Zoom Out
+                        </button>
+                    </div>
+                    <div class="btn-group me-2" role="group">
+                        <button type="button" class="btn btn-outline-secondary" id="current-location">
+                            <i class="bi bi-geo-alt-fill"></i> Current Location
+                        </button>
+                    </div>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-info" id="report-obstacle">
+                            <i class="bi bi-exclamation-triangle"></i> Report Obstacle
+                        </button>
                     </div>
                 </div>
             </div>
             
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5>Route Information</h5>
-                </div>
-                <div class="card-body">
-                    <div id="route-info">
-                        <p class="text-muted">Route information will appear here after calculation</p>
+            <!-- Route Details Panel -->
+            <div id="route-details" class="mt-3" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-info-circle"></i> Selected Route Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="route-info">
+                            <!-- Route information will be populated here -->
+                        </div>
+                        
+                        <!-- Feedback Form -->
+                        <div class="mt-3">
+                            <h6>Rate This Route</h6>
+                            <form id="feedback-form">
+                                <div class="mb-2">
+                                    <label for="accessibility-rating" class="form-label">Accessibility Rating</label>
+                                    <select class="form-select form-select-sm" id="accessibility-rating">
+                                        <option value="">Select rating...</option>
+                                        <option value="5">Excellent - Fully accessible</option>
+                                        <option value="4">Good - Minor obstacles</option>
+                                        <option value="3">Fair - Some challenges</option>
+                                        <option value="2">Poor - Major obstacles</option>
+                                        <option value="1">Very Poor - Not accessible</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label for="feedback-comments" class="form-label">Comments (optional)</label>
+                                    <textarea class="form-control" id="feedback-comments" rows="2" 
+                                              placeholder="Share your experience with this route..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-chat-left-text"></i> Submit Feedback
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Obstacle Report Modal -->
+<div class="modal fade" id="obstacleModal" tabindex="-1" aria-labelledby="obstacleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="obstacleModalLabel">Report Obstacle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="obstacle-report-form">
+                    <div class="mb-3">
+                        <label for="obstacle-type" class="form-label">Obstacle Type *</label>
+                        <select class="form-select" id="obstacle-type" required>
+                            <option value="">Select obstacle type...</option>
+                            <option value="construction">Construction/Roadwork</option>
+                            <option value="broken_ramp">Broken Ramp</option>
+                            <option value="blocked_path">Blocked Path</option>
+                            <option value="elevator_out">Elevator Out of Service</option>
+                            <option value="uneven_surface">Uneven Surface</option>
+                            <option value="steep_slope">Steep Slope</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="obstacle-location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="obstacle-location" 
+                               placeholder="Click on map or enter address" readonly>
+                        <input type="hidden" id="obstacle-lat">
+                        <input type="hidden" id="obstacle-lng">
+                    </div>
+                    <div class="mb-3">
+                        <label for="obstacle-description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="obstacle-description" rows="3" 
+                                  placeholder="Describe the obstacle and its impact on accessibility..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="submit-obstacle">Report Obstacle</button>
             </div>
         </div>
     </div>
@@ -99,81 +354,12 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const routeForm = document.getElementById('route-form');
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    routeForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const start = document.getElementById('start').value;
-        const end = document.getElementById('end').value;
-        const routeType = document.getElementById('route-type').value;
-        
-        // Show loading indicator
-        const routeInfo = document.getElementById('route-info');
-        routeInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-        
-        // In a real implementation, this would call the API to calculate the route
-        // For now, we'll simulate a response
-        setTimeout(function() {
-            // Simulated route data
-            const routeData = {
-                start: start,
-                end: end,
-                distance: '1.5 km',
-                estimatedTime: '20 minutes',
-                accessibilityScore: 0.85,
-                segments: [
-                    {
-                        id: 1,
-                        start: 'Start Point',
-                        end: 'Intersection A',
-                        distance: '500m',
-                        surfaceType: 'asphalt',
-                        accessibilityScore: 0.9
-                    },
-                    {
-                        id: 2,
-                        start: 'Intersection A',
-                        end: 'Destination',
-                        distance: '1000m',
-                        surfaceType: 'concrete',
-                        accessibilityScore: 0.8
-                    }
-                ]
-            };
-            
-            // Display route information
-            displayRouteInfo(routeData);
-        }, 1000);
-    });
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
-    function displayRouteInfo(routeData) {
-        const routeInfo = document.getElementById('route-info');
-        let html = `
-            <h6>Route Summary</h6>
-            <p><strong>Distance:</strong> ${routeData.distance}</p>
-            <p><strong>Estimated Time:</strong> ${routeData.estimatedTime}</p>
-            <p><strong>Accessibility Score:</strong> <span class="accessibility-score-high">${(routeData.accessibilityScore * 100).toFixed(0)}%</span></p>
-            
-            <h6>Route Segments</h6>
-        `;
-        
-        routeData.segments.forEach(segment => {
-            html += `
-                <div class="route-segment">
-                    <p><strong>${segment.start}</strong> to <strong>${segment.end}</strong></p>
-                    <p>Distance: ${segment.distance} | Surface: ${segment.surfaceType} | 
-                    Accessibility: <span class="accessibility-score-${segment.accessibilityScore >= 0.8 ? 'high' : segment.accessibilityScore >= 0.6 ? 'medium' : 'low'}">
-                    ${(segment.accessibilityScore * 100).toFixed(0)}%</span></p>
-                </div>
-            `;
-        });
-        
-        routeInfo.innerHTML = html;
-    }
-});
-</script>
+    <!-- Route Planner JavaScript -->
+    <script src="{{ url_for('static', filename='js/route_planner.js') }}"></script>
 {% endblock %}

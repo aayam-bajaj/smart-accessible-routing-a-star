@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Smart Accessible Routing System{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="error-page">
+                <h1 class="display-1 text-danger">500</h1>
+                <h2 class="mb-4">Internal Server Error</h2>
+                <p class="lead mb-4">
+                    Something went wrong on our end. We're working to fix it as quickly as possible.
+                </p>
+                <div class="mb-4">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-house"></i> Go Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Go Back
+                    </button>
+                </div>
+                <div class="mt-5">
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> What can you do?</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li>• Try refreshing the page</li>
+                            <li>• Check your internet connection</li>
+                            <li>• Contact support if the problem persists</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 60px 0;
+}
+
+.error-page h1 {
+    font-size: 8rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .error-page h1 {
+        font-size: 6rem;
+    }
+}
+</style>
+{% endblock %}
